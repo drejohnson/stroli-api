@@ -15,7 +15,7 @@ pub fn grab_secrets(secrets: shuttle_runtime::SecretStore) -> AppSecrets {
             .get("EDGEDB_INSTANCE")
             .unwrap_or_else(|| "None".to_string()),
         edgedb_secret_key: secrets
-            .get("SURREALDB_USERNAME")
+            .get("EDGE_DB_SECRET_KEY")
             .unwrap_or_else(|| "None".to_string()),
         stripe_key: secrets
             .get("STRIPE_KEY")
