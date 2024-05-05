@@ -1,7 +1,10 @@
 // dependencies
 use axum::{extract::Request, Router, ServiceExt};
+use edgedb_tokio::Builder;
+use edgedb_tokio::Client;
 use shuttle_runtime::Error;
 use stroli_api_lib::domain::grab_secrets;
+use stroli_api_lib::domain::AppSecrets;
 use stroli_api_lib::domain::AppState;
 use stroli_api_lib::startup::build_api_router;
 use tower_http::normalize_path::NormalizePathLayer;
@@ -35,7 +38,7 @@ async fn main(
 ) -> Result<StroliService, Error> {
     let secrets = grab_secrets(secret_store);
 
-    let conn = edgedb_tokio::create_client()
+    let conn = create_client(secrets.clone())
         .await
         .expect("Client should have initiated");
 
@@ -52,15 +55,15 @@ async fn main(
     Ok(StroliService { app_router })
 }
 
-// pub async fn create_client(secrets: AppSecrets) -> Result<Client, Error> {
-//     let cfg = Builder::new()
-//         .instance(&secrets.edgedb_instance)
-//         .unwrap()
-//         .secret_key(&secrets.edgedb_secret_key)
-//         .build_env()
-//         .await
-//         .unwrap();
-//     let pool = Client::new(&cfg);
-//     pool.ensure_connected().await.unwrap();
-//     Ok(pool)
-// }
+pub async fn create_client(secrets: AppSecrets) -> Result<Client, Error> {
+    let cfg = Builder::new()
+        .instance(&secrets.edgedb_instance)
+        .unwrap()
+        .secret_key(&secrets.edgedb_secret_key)
+        .build_env()
+        .await
+        .unwrap();
+    let pool = Client::new(&cfg);
+    pool.ensure_connected().await.unwrap();
+    Ok(pool)
+}
