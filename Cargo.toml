@@ -1,5 +1,5 @@
 [package]
-name = "stroli-api"
+name = "stroli-backend"
 version = "0.1.0"
 edition = "2021"
 description = "The API for the Stroli app, hosted on Shuttle"
