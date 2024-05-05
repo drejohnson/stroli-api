@@ -35,6 +35,9 @@ async fn main(
 ) -> Result<StroliService, Error> {
     let secrets = grab_secrets(secret_store);
 
+    std::env::set_var("EDGEDB_INSTANCE", secrets.edgedb_instance.to_owned());
+    std::env::set_var("EDGEDB_SECRET_KEY", secrets.edgedb_secret_key.to_owned());
+
     let conn = edgedb_tokio::create_client()
         .await
         .expect("Client should have initiated");
