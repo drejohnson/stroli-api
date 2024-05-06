@@ -10,13 +10,24 @@ use thiserror::Error;
 pub enum ApiError {
     #[error("Database error: {0}")]
     Database(edgedb_errors::Error),
-    // TODO: add more error types here as needed
+    #[error("Network error: {0}")]
+    NetworkError(String),
 }
 
 // implement the From trait for edgedb_errors::Error, for use in the ApiError enum
 impl From<edgedb_errors::Error> for ApiError {
     fn from(err: edgedb_errors::Error) -> Self {
         ApiError::Database(err)
+    }
+}
+
+impl From<ApiError> for shuttle_runtime::Error {
+    fn from(err: ApiError) -> Self {
+        let message = match err {
+            ApiError::Database(detail) => format!("Database connection error: {}", detail),
+            ApiError::NetworkError(detail) => format!("Network error: {}", detail),
+        };
+        shuttle_runtime::Error::Io(std::io::Error::new(std::io::ErrorKind::Other, message))
     }
 }
 
