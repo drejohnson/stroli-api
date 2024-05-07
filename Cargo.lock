@@ -3544,6 +3544,7 @@ dependencies = [
  "axum 0.7.5",
  "axum-extra",
  "axum-macros",
+ "base64 0.22.1",
  "edgedb-derive",
  "edgedb-errors",
  "edgedb-protocol",
@@ -3554,6 +3555,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "sha2",
  "shuttle-axum",
  "shuttle-runtime",
  "thiserror",
@@ -3562,6 +3564,7 @@ dependencies = [
  "tower-http",
  "tower-layer",
  "tracing",
+ "url",
 ]
 
 [[package]]
