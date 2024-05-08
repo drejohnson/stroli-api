@@ -1,8 +1,10 @@
 #[derive(Debug, Clone)]
 pub struct AppSecrets {
-    pub edgedb_instance: String,
-    pub edgedb_secret_key: String,
-    pub edgedb_base_auth_url: String,
+    pub db_endpoint: String,
+    pub db_username: String,
+    pub db_password: String,
+    pub db_namespace: String,
+    pub db_database_name: String,
     pub stripe_key: String,
     pub stripe_sub_price: String,
     pub mailgun_key: String,
@@ -12,14 +14,20 @@ pub struct AppSecrets {
 
 pub fn grab_secrets(secrets: shuttle_runtime::SecretStore) -> AppSecrets {
     AppSecrets {
-        edgedb_instance: secrets
-            .get("EDGEDB_INSTANCE")
+        db_endpoint: secrets
+            .get("SURREALDB_URL")
             .unwrap_or_else(|| "None".to_string()),
-        edgedb_secret_key: secrets
-            .get("EDGEDB_SECRET_KEY")
+        db_username: secrets
+            .get("SURREALDB_USERNAME")
             .unwrap_or_else(|| "None".to_string()),
-        edgedb_base_auth_url: secrets
-            .get("EDGEDB_AUTH_BASE_URL")
+        db_password: secrets
+            .get("SURREALDB_PASSWORD")
+            .unwrap_or_else(|| "None".to_string()),
+        db_namespace: secrets
+            .get("SURREALDB_NAMESPACE")
+            .unwrap_or_else(|| "None".to_string()),
+        db_database_name: secrets
+            .get("SURREALDB_DATABASE_NAME")
             .unwrap_or_else(|| "None".to_string()),
         stripe_key: secrets
             .get("STRIPE_KEY")

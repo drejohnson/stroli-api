@@ -9,14 +9,14 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum ApiError {
     #[error("Database error: {0}")]
-    Database(edgedb_errors::Error),
+    Database(surrealdb::Error),
     #[error("Network error: {0}")]
     NetworkError(String),
 }
 
-// implement the From trait for edgedb_errors::Error, for use in the ApiError enum
-impl From<edgedb_errors::Error> for ApiError {
-    fn from(err: edgedb_errors::Error) -> Self {
+// implement the From trait for surrealdb::Error, for use in the ApiError enum
+impl From<surrealdb::Error> for ApiError {
+    fn from(err: surrealdb::Error) -> Self {
         ApiError::Database(err)
     }
 }
