@@ -1,9 +1,8 @@
 use std::sync::{Arc, RwLock};
 
+use crate::domain::app_secrets::AppSecrets;
 use axum::extract::FromRef;
 use axum_extra::extract::cookie::Key;
-
-use super::AppSecrets;
 
 pub type SharedState = Arc<RwLock<AppState>>;
 
