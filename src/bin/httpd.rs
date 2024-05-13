@@ -1,7 +1,7 @@
 // dependencies
 use axum::{extract::Request, Router, ServiceExt};
-use stroli_api_lib::database::connect_to_database;
 use stroli_api_lib::domain::{grab_secrets, AppState};
+use stroli_api_lib::infrastructure::data::db::connect_to_database;
 use stroli_api_lib::startup::build_api_router;
 use tower_http::normalize_path::NormalizePathLayer;
 use tower_layer::Layer;
@@ -35,6 +35,8 @@ async fn main(
 
     // Create a client using the secrets
     let db = connect_to_database(&secrets).await?;
+
+    dbg!(&db.health());
 
     let app_state = AppState::initialize(db, secrets);
 
