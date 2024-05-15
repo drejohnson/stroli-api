@@ -56,22 +56,10 @@ impl From<reqwest::Error> for ApiError {
 
 impl From<ApiError> for shuttle_runtime::Error {
     fn from(err: ApiError) -> Self {
-        let message = match err {
-            ApiError::BadRequest(detail) => format!("Bad request: {}", detail),
-            ApiError::LockPoisoned => "Lock poisoned".to_string(),
-            ApiError::Database(detail) => format!("Database connection error: {}", detail),
-            ApiError::NetworkError(detail) => format!("Network error: {}", detail),
-            ApiError::ParseError(detail) => format!("JSON parse error: {}", detail),
-            ApiError::InternalServerError => "Internal server error".to_string(),
-            ApiError::MissingVerifier => "Missing verifier".to_string(),
-            ApiError::VerificationRequired => "Verification required".to_string(),
-            ApiError::NotFound(detail) => format!("Not found: {}", detail),
-            ApiError::RDKafka(detail) => format!("RDKafka error: {}", detail),
-            ApiError::Kafka(detail) => format!("Kafka error: {}", detail),
-            ApiError::SerdeJson(detail) => format!("De/serialization error: {}", detail),
-            ApiError::CanceledMessage(_) => "Oneshot message was canceled".to_string(),
-        };
-        shuttle_runtime::Error::Io(std::io::Error::new(std::io::ErrorKind::Other, message))
+        shuttle_runtime::Error::Io(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            err.to_string(),
+        ))
     }
 }
 
