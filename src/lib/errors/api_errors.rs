@@ -28,14 +28,14 @@ pub enum ApiError {
     VerificationRequired,
     #[error("NotFound: {0}")]
     NotFound(String),
-    // #[error("RDKafka error: {0}")]
-    // RDKafka(#[from] rdkafka::error::RDKafkaError),
-    // #[error("Kafka error: {0}")]
-    // Kafka(rdkafka::error::KafkaError),
-    // #[error("De/serialization error: {0}")]
-    // SerdeJson(#[from] serde_json::Error),
-    // #[error("Oneshot message was canceled")]
-    // CanceledMessage(#[from] futures::channel::oneshot::Canceled),
+    #[error("RDKafka error: {0}")]
+    RDKafka(#[from] rdkafka::error::RDKafkaError),
+    #[error("Kafka error: {0}")]
+    Kafka(rdkafka::error::KafkaError),
+    #[error("De/serialization error: {0}")]
+    SerdeJson(#[from] serde_json::Error),
+    #[error("Oneshot message was canceled")]
+    CanceledMessage(#[from] futures::channel::oneshot::Canceled),
 }
 
 // implement the From trait for surrealdb::Error, for use in the ApiError enum
@@ -59,27 +59,27 @@ impl From<reqwest::Error> for ApiError {
     }
 }
 
-// impl<'a>
-//     From<(
-//         rdkafka::error::KafkaError,
-//         rdkafka::producer::FutureRecord<'a, str, std::vec::Vec<u8>>,
-//     )> for ApiError
-// {
-//     fn from(
-//         e: (
-//             rdkafka::error::KafkaError,
-//             rdkafka::producer::FutureRecord<'a, str, std::vec::Vec<u8>>,
-//         ),
-//     ) -> Self {
-//         Self::Kafka(e.0)
-//     }
-// }
+impl<'a>
+    From<(
+        rdkafka::error::KafkaError,
+        rdkafka::producer::FutureRecord<'a, str, std::vec::Vec<u8>>,
+    )> for ApiError
+{
+    fn from(
+        e: (
+            rdkafka::error::KafkaError,
+            rdkafka::producer::FutureRecord<'a, str, std::vec::Vec<u8>>,
+        ),
+    ) -> Self {
+        Self::Kafka(e.0)
+    }
+}
 
-// impl From<(rdkafka::error::KafkaError, rdkafka::message::OwnedMessage)> for ApiError {
-//     fn from(e: (rdkafka::error::KafkaError, rdkafka::message::OwnedMessage)) -> Self {
-//         Self::Kafka(e.0)
-//     }
-// }
+impl From<(rdkafka::error::KafkaError, rdkafka::message::OwnedMessage)> for ApiError {
+    fn from(e: (rdkafka::error::KafkaError, rdkafka::message::OwnedMessage)) -> Self {
+        Self::Kafka(e.0)
+    }
+}
 
 impl From<ApiError> for shuttle_runtime::Error {
     fn from(err: ApiError) -> Self {
@@ -93,10 +93,10 @@ impl From<ApiError> for shuttle_runtime::Error {
             ApiError::MissingVerifier => "Missing verifier".to_string(),
             ApiError::VerificationRequired => "Verification required".to_string(),
             ApiError::NotFound(detail) => format!("Not found: {}", detail),
-            // ApiError::RDKafka(detail) => format!("RDKafka error: {}", detail),
-            // ApiError::Kafka(detail) => format!("Kafka error: {}", detail),
-            // ApiError::SerdeJson(detail) => format!("De/serialization error: {}", detail),
-            // ApiError::CanceledMessage(_) => "Oneshot message was canceled".to_string(),
+            ApiError::RDKafka(detail) => format!("RDKafka error: {}", detail),
+            ApiError::Kafka(detail) => format!("Kafka error: {}", detail),
+            ApiError::SerdeJson(detail) => format!("De/serialization error: {}", detail),
+            ApiError::CanceledMessage(_) => "Oneshot message was canceled".to_string(),
         };
         shuttle_runtime::Error::Io(std::io::Error::new(std::io::ErrorKind::Other, message))
     }
@@ -118,10 +118,10 @@ impl IntoResponse for ApiError {
             Self::MissingVerifier => (StatusCode::BAD_REQUEST, self.to_string()),
             Self::VerificationRequired => (StatusCode::UNAUTHORIZED, self.to_string()),
             Self::NotFound(_) => (StatusCode::NOT_FOUND, self.to_string()),
-            // Self::Kafka(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
-            // Self::RDKafka(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
-            // Self::SerdeJson(e) => (StatusCode::BAD_REQUEST, e.to_string()),
-            // Self::CanceledMessage(e) => (StatusCode::BAD_REQUEST, e.to_string()),
+            Self::Kafka(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+            Self::RDKafka(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+            Self::SerdeJson(e) => (StatusCode::BAD_REQUEST, e.to_string()),
+            Self::CanceledMessage(e) => (StatusCode::BAD_REQUEST, e.to_string()),
         };
 
         // Optionally, log the error here
