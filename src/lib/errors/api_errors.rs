@@ -1,21 +1,19 @@
-// dependencies
 use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
 use serde::ser::Error;
+use surrealdb::Error as SurrealError;
 use thiserror::Error;
 
-// an enum to represent possible API error types
 #[derive(Debug, Error)]
 pub enum ApiError {
-    // handle bad requests
     #[error("Bad request: {0}")]
     BadRequest(String),
     #[error("Lock poisoned")]
     LockPoisoned,
     #[error("Database error: {0}")]
-    Database(surrealdb::Error),
+    Database(SurrealError),
     #[error("Network error: {0}")]
     NetworkError(String),
     #[error("JSON parse error: {0}")]
@@ -38,9 +36,8 @@ pub enum ApiError {
     CanceledMessage(#[from] futures::channel::oneshot::Canceled),
 }
 
-// implement the From trait for surrealdb::Error, for use in the ApiError enum
-impl From<surrealdb::Error> for ApiError {
-    fn from(err: surrealdb::Error) -> Self {
+impl From<SurrealError> for ApiError {
+    fn from(err: SurrealError) -> Self {
         ApiError::Database(err)
     }
 }
@@ -53,31 +50,7 @@ impl From<url::ParseError> for ApiError {
 
 impl From<reqwest::Error> for ApiError {
     fn from(error: reqwest::Error) -> Self {
-        // Convert the `reqwest::Error` into an `ApiError` here.
-        // This will depend on how your `ApiError` type is defined.
         ApiError::NetworkError(error.to_string())
-    }
-}
-
-impl<'a>
-    From<(
-        rdkafka::error::KafkaError,
-        rdkafka::producer::FutureRecord<'a, str, std::vec::Vec<u8>>,
-    )> for ApiError
-{
-    fn from(
-        e: (
-            rdkafka::error::KafkaError,
-            rdkafka::producer::FutureRecord<'a, str, std::vec::Vec<u8>>,
-        ),
-    ) -> Self {
-        Self::Kafka(e.0)
-    }
-}
-
-impl From<(rdkafka::error::KafkaError, rdkafka::message::OwnedMessage)> for ApiError {
-    fn from(e: (rdkafka::error::KafkaError, rdkafka::message::OwnedMessage)) -> Self {
-        Self::Kafka(e.0)
     }
 }
 
@@ -102,7 +75,6 @@ impl From<ApiError> for shuttle_runtime::Error {
     }
 }
 
-// implement the IntoResponse trait for the ApiError type, for use in returning an error from a handler
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
         let (status, msg) = match &self {
@@ -124,7 +96,6 @@ impl IntoResponse for ApiError {
             Self::CanceledMessage(e) => (StatusCode::BAD_REQUEST, e.to_string()),
         };
 
-        // Optionally, log the error here
         eprintln!("Error encountered: {}", msg); // Replace with a proper logging mechanism in production
 
         (status, msg).into_response()

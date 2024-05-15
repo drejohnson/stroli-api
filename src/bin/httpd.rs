@@ -1,6 +1,7 @@
 use axum::{extract::Request, Router, ServiceExt};
 use shuttle_runtime::DeploymentMetadata;
 use stroli_api_lib::domain::{grab_secrets, AppState};
+use stroli_api_lib::errors::ApiError;
 use stroli_api_lib::infrastructure::data::db::connect_to_database;
 use stroli_api_lib::startup::build_api_router;
 use tower_http::normalize_path::NormalizePathLayer;
@@ -30,20 +31,20 @@ impl shuttle_runtime::Service for StroliService {
 #[shuttle_runtime::main]
 async fn main(
     #[shuttle_runtime::Secrets] secret_store: shuttle_runtime::SecretStore,
-    #[shuttle_runtime::Metadata] metadata: DeploymentMetadata,
+    #[shuttle_runtime::Metadata] _metadata: DeploymentMetadata,
 ) -> Result<StroliService, shuttle_runtime::Error> {
     let secrets = grab_secrets(secret_store);
 
     // Create a client using the secrets
     let db = connect_to_database(&secrets).await?;
 
-    let app_state = AppState::initialize(db, secrets, &metadata);
+    let app_state = AppState::initialize(db, secrets);
 
     // intialize the app state with the database pool
     let shared_state = AppState::initialize_shared_state(app_state);
 
     // create an Axum router
-    let app_router = build_api_router(shared_state);
+    let app_router = build_api_router(shared_state).map_err(ApiError::from)?;
 
     // return a StroliService instance
     Ok(StroliService { app_router })
