@@ -6,9 +6,9 @@ use axum::{
 use serde_json::json;
 use std::sync::{Arc, RwLock};
 
+use crate::domain::repositories::ItemRepository;
 use crate::domain::{AppState, Item};
 use crate::errors::ApiError;
-use crate::infrastructure::data::repositories::ItemRepository;
 
 use serde::{Deserialize, Serialize};
 

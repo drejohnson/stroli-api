@@ -7,7 +7,7 @@ use std::sync::{Arc, RwLock};
 
 use crate::domain::models::item::Item;
 use crate::domain::AppState;
-use crate::{errors::ApiError, infrastructure::data::repositories::ItemRepository};
+use crate::{domain::repositories::ItemRepository, errors::ApiError};
 
 pub async fn create_item_command(
     State(state): State<Arc<RwLock<AppState>>>,

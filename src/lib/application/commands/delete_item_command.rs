@@ -5,9 +5,9 @@ use axum::{
 use serde_json::json;
 use std::sync::{Arc, RwLock};
 
+use crate::domain::repositories::ItemRepository;
 use crate::domain::AppState;
 use crate::errors::ApiError;
-use crate::infrastructure::data::repositories::ItemRepository;
 
 pub async fn delete_item_command(
     State(state): State<Arc<RwLock<AppState>>>,
