@@ -1,5 +1,13 @@
+use std::sync::OnceLock;
+
+use shuttle_runtime::SecretStore;
+
 #[derive(Debug, Clone)]
 pub struct AppSecrets {
+    pub aws_url: String,
+    pub aws_access_key_id: String,
+    pub aws_secret_access_key: String,
+    pub aws_region: String,
     pub db_endpoint: String,
     pub db_username: String,
     pub db_password: String,
@@ -18,8 +26,20 @@ pub struct AppSecrets {
     pub domain: String,
 }
 
-pub fn grab_secrets(secrets: shuttle_runtime::SecretStore) -> AppSecrets {
-    AppSecrets {
+pub fn grab_secrets(secrets: SecretStore) -> &'static AppSecrets {
+    static APP_SECRETS: OnceLock<AppSecrets> = OnceLock::new();
+
+    APP_SECRETS.get_or_init(|| AppSecrets {
+        aws_url: secrets.get("AWS_URL").unwrap_or_else(|| "None".to_string()),
+        aws_access_key_id: secrets
+            .get("AWS_ACCESS_KEY_ID")
+            .unwrap_or_else(|| "None".to_string()),
+        aws_secret_access_key: secrets
+            .get("AWS_SECRET_ACCESS_KEY")
+            .unwrap_or_else(|| "None".to_string()),
+        aws_region: secrets
+            .get("AWS_REGION")
+            .unwrap_or_else(|| "None".to_string()),
         db_endpoint: secrets
             .get("SURREALDB_URL")
             .unwrap_or_else(|| "None".to_string()),
@@ -68,5 +88,5 @@ pub fn grab_secrets(secrets: shuttle_runtime::SecretStore) -> AppSecrets {
         domain: secrets
             .get("DOMAIN_URL")
             .unwrap_or_else(|| "None".to_string()),
-    }
+    })
 }

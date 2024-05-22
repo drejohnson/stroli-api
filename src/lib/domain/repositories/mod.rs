@@ -1,3 +1,3 @@
-pub mod item_repository;
+pub mod person_repository;
 
-pub use item_repository::*;
+pub use person_repository::*;

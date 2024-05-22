@@ -1,3 +1,1 @@
-pub mod item;
-
-pub use item::*;
+pub mod person;
