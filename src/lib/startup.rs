@@ -2,6 +2,7 @@ use crate::application::commands::person_commands;
 use crate::application::queries::person_queries;
 // use crate::domain::person;
 use crate::domain::state::SharedState;
+use crate::services::auth::routes::auth_routes;
 use axum::response::Response;
 use axum::Json;
 use axum::{http::StatusCode, response::IntoResponse};
@@ -43,24 +44,24 @@ pub fn build_api_router(app_state: SharedState) -> Result<Router> {
 
     Ok(Router::new()
         .route("/health_check", get(health_check))
-        //curl -X POST -H "Content-Type: application/json" -d '{"name":"John Doe"}' http://localhost:8000/api/person
-        .route("/api/person", post(person_commands::create_command))
-        //curl -X GET http://localhost:8000/api/person/klsei458igfj9ds
-        .route("/api/person/:id", get(person_queries::get_by_id_query))
-        //curl -X PUT -H "Content-Type: application/json" -d '{"name":"Jane Doe"}' http://localhost:8000/api/person/klsei458igfj9ds
-        .route("/api/person/:id", put(person_commands::update_command))
-        //curl -X DELETE http://localhost:8000/api/person/1
-        .route("/api/person/:id", delete(person_commands::delete_command))
-        //curl -X GET http://localhost:8000/api/people
-        .route("/api/people", get(person_queries::get_all_query))
+        .nest("/api", Router::new().merge(auth_routes(app_state.clone())))
+        // //curl -X POST -H "Content-Type: application/json" -d '{"name":"John Doe"}' http://localhost:8000/api/person
+        // .route("/api/person", post(person_commands::create_command))
+        // //curl -X GET http://localhost:8000/api/person/klsei458igfj9ds
+        // .route("/api/person/:id", get(person_queries::get_by_id_query))
+        // //curl -X PUT -H "Content-Type: application/json" -d '{"name":"Jane Doe"}' http://localhost:8000/api/person/klsei458igfj9ds
+        // .route("/api/person/:id", put(person_commands::update_command))
+        // //curl -X DELETE http://localhost:8000/api/person/1
+        // .route("/api/person/:id", delete(person_commands::delete_command))
+        // //curl -X GET http://localhost:8000/api/people
+        // .route("/api/people", get(person_queries::get_all_query))
         .layer(cors)
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
                 .on_request(trace::DefaultOnRequest::new().level(Level::INFO))
                 .on_response(trace::DefaultOnResponse::new().level(Level::INFO)),
-        )
-        .with_state(app_state))
+        ))
 }
 
 // initialize tracing

@@ -1,38 +1,27 @@
-DEFINE TABLE user SCHEMAFULL
-  -- Authorized users can select, update, delete and create user records.
-  -- Records that do not match the permissions will not be modified nor returned.
-  PERMISSIONS FOR select, update, delete, create
-  WHERE
-    $scope = "user"
-    AND $token.iss = "https://api.workos.com/"
-    AND email = $token.email
-    AND $token.email_verified = true
-DEFINE FIELD email ON user TYPE string ASSERT string::is::email($value); 
-DEFINE INDEX userEmailIndex ON TABLE user COLUMNS email UNIQUE;
+-- User scope
+DEFINE SCOPE user SESSION 1d SIGNUP (CREATE user CONTENT {
+	email: $email,
+	name: $name,
+	password: crypto::argon2::generate($password)
+}) SIGNIN (SELECT * FROM user WHERE email = $email AND crypto::argon2::compare(password, $password));
 
--- Create schemaless profile table.
+-- User schema
+DEFINE TABLE user SCHEMAFULL
+	PERMISSIONS
+		FOR select, update, delete WHERE id = $auth.id;
+
+DEFINE FIELD name ON user TYPE string;
+DEFINE FIELD email ON user TYPE string ASSERT string::is::email($value);
+DEFINE FIELD password ON user TYPE string;
+
+DEFINE FIELD name ON user TYPE string;
+
+-- Post schema
 DEFINE TABLE profile SCHEMALESS;
 DEFINE FIELD username ON profile TYPE string UNIQUE;
 DEFINE FIELD user ON profile TYPE record(Users);
 
--- Specify access permissions for the 'post' table
-DEFINE TABLE post SCHEMALESS
-	PERMISSIONS
-		FOR select
-			-- Published posts can be selected
-			WHERE published = true
-			-- A user can select all their own posts
-			OR user = $auth.id
-		FOR create, update
-			-- A user can create or update their own posts
-			WHERE user = $auth.id
-		FOR delete
-			-- A user can delete their own posts
-			WHERE user = $auth.id
-			-- Or an admin can delete any posts
-			OR $auth.admin = true
-;
-
+-- Create relation table
 DEFINE TABLE create TYPE RELATION;
 
 -- Define a follow RELATION table, with constraints on the type of relation which can be stored

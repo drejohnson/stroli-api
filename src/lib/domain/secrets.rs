@@ -14,7 +14,9 @@ pub struct AppSecrets {
     pub db_namespace: String,
     pub db_database_name: String,
     pub jwt_name: String,
-    pub jwt_secret: String,
+    pub jwt_hs512_secret: String,
+    pub jwt_rs256_public: String,
+    pub jwt_rs256_private: String,
     pub jwt_issuer: String,
     pub kafka_url: String,
     pub kafka_sasl_user: String,
@@ -58,8 +60,14 @@ pub fn grab_secrets(secrets: SecretStore) -> &'static AppSecrets {
         jwt_name: secrets
             .get("JWT_NAME")
             .unwrap_or_else(|| "None".to_string()),
-        jwt_secret: secrets
-            .get("JWT_SECRET")
+        jwt_hs512_secret: secrets
+            .get("JWT_HS512_SECRET")
+            .unwrap_or_else(|| "None".to_string()),
+        jwt_rs256_public: secrets
+            .get("JWT_RS256_PUBLIC")
+            .unwrap_or_else(|| "None".to_string()),
+        jwt_rs256_private: secrets
+            .get("JWT_RS256_PRIVATE")
             .unwrap_or_else(|| "None".to_string()),
         jwt_issuer: secrets
             .get("JWT_ISSUER")

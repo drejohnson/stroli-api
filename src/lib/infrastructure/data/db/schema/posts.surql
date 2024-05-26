@@ -11,10 +11,10 @@ DEFINE TABLE post SCHEMALESS
             OR $auth.role = roles:admin
 ;
 
-DEFINE FIELD title ON TABLE post TYPE string;
-DEFINE FIELD description ON TABLE post TYPE string;
-DEFINE FIELD content ON TABLE post TYPE string;
-DEFINE FIELD published ON TABLE post TYPE bool DEFAULT false;
-DEFINE FIELD created_at ON TABLE post TYPE datetime DEFAULT time::now();
-DEFINE FIELD updated_at ON TABLE post TYPE datetime DEFAULT time::now() VALUE time::now();
-DEFINE FIELD account ON TABLE post TYPE record(account) DEFAULT $auth.id;
+DEFINE FIELD title ON post TYPE string;
+DEFINE FIELD description ON post TYPE string;
+DEFINE FIELD content ON post TYPE string;
+DEFINE FIELD published ON post TYPE bool DEFAULT false;
+DEFINE FIELD created_at ON post TYPE datetime DEFAULT time::now() READONLY;
+DEFINE FIELD updated_at ON post TYPE datetime DEFAULT time::now() VALUE time::now() READONLY;
+DEFINE FIELD profile ON post TYPE record(profile) DEFAULT $auth.id;
